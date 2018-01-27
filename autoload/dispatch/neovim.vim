@@ -36,7 +36,6 @@ function! s:CommandOptions(request) abort
 						\ 'on_stderr': function('s:BufferOutput'),
 						\ 'on_exit': function('s:JobExit'),
 						\ 'tempfile': a:request.file,
-						\ 'output': ''
 						\})
 		else
 			call extend(opts, {
@@ -119,19 +118,6 @@ function! dispatch#neovim#activate(pid) abort
 	endif
 endfunction
 
-" Remove newlines and merge lines without newlines
-function! s:FilterNewlines(lines, state) abort
-	let l:lines = []
-	for line in a:lines
-		let l:line_without_newline = substitute(line, '\n\|\r', '', 'g')
-		let a:state.output .= l:line_without_newline
-		if line =~ '\n\|\r'
-			call add(l:lines, a:state.output)
-			let a:state.output = ''
-		endif
-	endfor
-	return l:lines
-endfunction
 
 function! s:RemoveANSI(lines)
 	return map(a:lines, 'substitute(v:val, ''\e\[[0-9;]*[a-zA-Z]'', "", "g")')
@@ -141,7 +127,6 @@ function! s:BufferOutput(job_id, data, event) dict abort
 	let l:lines = a:data
 	let l:lines = filter(l:lines, '!empty(v:val)')
 	let l:lines = s:RemoveANSI(l:lines)
-	let l:lines = s:FilterNewlines(l:lines, self)
 	call writefile(l:lines, self.tempfile, "a")
 endfunction
 
