@@ -23,26 +23,26 @@ function! s:CommandOptions(request) abort
 				\ 'background': a:request.background,
 				\ 'request': a:request,
 				\}
-	let terminal_opts = { 'pty': 1, 'width': 80, 'height': 25 }
+	let terminal_opts = { 'pty': 1, 'width': 999, 'height': 25 }
 
 	if s:UsesTerminal(a:request)
 		call extend(opts, terminal_opts)
 	endif
 
 	if s:NeedsOutput(a:request)
-		if s:IsBackgroundJob(a:request)
+		" if s:IsBackgroundJob(a:request)
 			call extend(opts, {
 						\ 'on_stdout': function('s:BufferOutput'),
 						\ 'on_stderr': function('s:BufferOutput'),
 						\ 'on_exit': function('s:JobExit'),
 						\ 'tempfile': a:request.file,
 						\})
-		else
-			call extend(opts, {
-						\ 'on_exit': function('s:JobExit'),
-						\ 'tempfile': a:request.file,
-						\})
-		endif
+		" else
+		" 	call extend(opts, {
+		" 				\ 'on_exit': function('s:JobExit'),
+		" 				\ 'tempfile': a:request.file,
+		" 				\})
+		" endif
 	endif
 	return opts
 endfunction
@@ -127,13 +127,14 @@ function! s:BufferOutput(job_id, data, event) dict abort
 	let l:lines = a:data
 	let l:lines = filter(l:lines, '!empty(v:val)')
 	let l:lines = s:RemoveANSI(l:lines)
-	call writefile(l:lines, self.tempfile, "a")
+	let l:lines = map(l:lines, 'substitute(v:val, "\r", "", "g")')
+	call writefile(l:lines, self.tempfile, 'a')
 endfunction
 
 function! s:JobExit(job_id, data, event) dict abort
-	if s:UsesTerminal(self.request) && s:NeedsOutput(self.request)
-		call writefile(getbufline(self.buf_id, 1, '$'), self.tempfile)
-	endif
+	" if s:UsesTerminal(self.request) && s:NeedsOutput(self.request)
+	" 	call writefile(getbufline(self.buf_id, 1, '$'), self.tempfile)
+	" endif
 
 	" Clean up terminal window if visible
 	if !self.background
