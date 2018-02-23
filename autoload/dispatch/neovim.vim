@@ -35,6 +35,8 @@ function! s:CommandOptions(request) abort
 						\ 'on_stdout': function('s:BufferOutput'),
 						\ 'on_stderr': function('s:BufferOutput'),
 						\ 'on_exit': function('s:JobExit'),
+						\ 'stdout_buffered': v:true,
+						\ 'stderr_buffered': v:true,
 						\ 'tempfile': a:request.file,
 						\})
 		" else
