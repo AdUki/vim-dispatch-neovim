@@ -122,7 +122,7 @@ endfunction
 
 
 function! s:RemoveANSI(lines)
-	return map(a:lines, 'substitute(v:val, ''\e\[[0-9;]*[a-zA-Z]'', "", "g")')
+	return map(a:lines, 'substitute(v:val, ''\e[\[(][0-9;]*[a-zA-Z]'', "", "g")')
 endfunction
 
 function! s:BufferOutput(job_id, data, event) dict abort
