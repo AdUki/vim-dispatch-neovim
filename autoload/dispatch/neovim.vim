@@ -18,20 +18,20 @@ function! s:IsBackgroundJob(request)
 endfunction
 
 function! s:CommandOptions(request) abort
-	let opts = {
+	let l:opts = {
 				\ 'name': a:request.title,
 				\ 'background': a:request.background,
 				\ 'request': a:request,
 				\}
-	let terminal_opts = { 'pty': 1, 'width': 999, 'height': 25 }
+	let l:terminal_opts = { 'pty': 1, 'width': 999, 'height': 25 }
 
 	if s:UsesTerminal(a:request)
-		call extend(opts, terminal_opts)
+		call extend(l:opts, l:terminal_opts)
 	endif
 
 	if s:NeedsOutput(a:request)
 		" if s:IsBackgroundJob(a:request)
-			call extend(opts, {
+			call extend(l:opts, {
 						\ 'on_stdout': function('s:BufferOutput'),
 						\ 'on_stderr': function('s:BufferOutput'),
 						\ 'on_exit': function('s:JobExit'),
@@ -40,45 +40,45 @@ function! s:CommandOptions(request) abort
 						\ 'tempfile': a:request.file,
 						\})
 		" else
-		" 	call extend(opts, {
+		" 	call extend(l:opts, {
 		" 				\ 'on_exit': function('s:JobExit'),
 		" 				\ 'tempfile': a:request.file,
 		" 				\})
 		" endif
 	endif
-	return opts
+	return l:opts
 endfunction
 
 function! s:SaveCurrentBufferPid(request)
-	let pid = get(b:, 'terminal_job_pid', 0)
-	call writefile([pid], a:request.file . '.pid')
-	let a:request.pid = pid " This is used by Start! (see g:DISPATCH_STARTS)
+	let l:pid = get(b:, 'terminal_job_pid', 0)
+	call writefile([l:pid], a:request.file . '.pid')
+	let a:request.pid = l:pid " This is used by Start! (see g:DISPATCH_STARTS)
 endfunction
 
 function! dispatch#neovim#handle(request) abort
-	let action = a:request.action
-	let cmd = a:request.expanded
-	let bg = a:request.background
-	let opts = s:CommandOptions(a:request)
+	let l:action = a:request.action
+	let l:cmd = a:request.expanded
+	let l:bg = a:request.background
+	let l:opts = s:CommandOptions(a:request)
 	if s:UsesTerminal(a:request)
 		if s:NeedsOutput(a:request)
 			execute 'botright split | enew | resize 10'
-			let opts.buf_id = bufnr('%')
-			call termopen(cmd, opts)
+			let l:opts.buf_id = bufnr('%')
+			call termopen(l:cmd, l:opts)
 			call s:SaveCurrentBufferPid(a:request)
 			execute 'wincmd p'
 		else
 			execute 'tabnew'
-			call termopen(cmd, opts)
+			call termopen(l:cmd, l:opts)
 			call s:SaveCurrentBufferPid(a:request)
-			if bg
+			if l:bg
 				execute 'tabprev'
 			else
 				execute 'startinsert'
 			endif
 		endif
 	else
-		let l:job_id = jobstart(cmd, opts)
+		let l:job_id = jobstart(l:cmd, l:opts)
 
 		" Create empty file in case there is no output
 		call writefile([], a:request.file)
@@ -92,11 +92,11 @@ function! dispatch#neovim#handle(request) abort
 endfunction
 
 function! s:FindBufferByPID(pid) abort
-	let bufcount = bufnr('$')
-	for b in range(1, bufcount)
-		if buflisted(b)
-			if a:pid == getbufvar(b, 'terminal_job_pid', -1) + 0
-				return b
+	let l:bufcount = bufnr('$')
+	for l:b in range(1, l:bufcount)
+		if buflisted(l:b)
+			if a:pid == getbufvar(l:b, 'terminal_job_pid', -1) + 0
+				return l:b
 			endif
 		endif
 	endfor
@@ -105,11 +105,11 @@ endfunction
 
 function! dispatch#neovim#activate(pid) abort
 	let l:buf = s:FindBufferByPID(a:pid)
-	if buf > 0
-		for t in range(1, tabpagenr('$'))
-			if index(tabpagebuflist(t), l:buf) != -1
+	if l:buf > 0
+		for l:t in range(1, tabpagenr('$'))
+			if index(tabpagebuflist(l:t), l:buf) != -1
 				" When we find the buffer, switch to the right tab and window
-				execute 'normal! '.t.'gt'
+				execute 'normal! '.l:t.'gt'
 				execute bufwinnr(l:buf).'wincmd w'
 				return 1
 			endif
@@ -140,12 +140,12 @@ function! s:JobExit(job_id, data, event) dict abort
 
 	" Clean up terminal window if visible
 	if !self.background
-		let term_win = bufwinnr(self.buf_id)
-		if term_win != -1
-			let cur_win = winnr()
-			execute term_win . ' wincmd w'
+		let l:term_win = bufwinnr(self.buf_id)
+		if l:term_win != -1
+			let l:cur_win = winnr()
+			execute l:term_win . ' wincmd w'
 			call feedkeys("\<C-\>\<C-n>", 'n')
-			execute cur_win . ' wincmd w'
+			execute l:cur_win . ' wincmd w'
 			execute 'silent bd! ' . self.buf_id
 		endif
 	endif
