@@ -66,11 +66,13 @@ function! dispatch#neovim#handle(request) abort
 			let l:opts.buf_id = bufnr('%')
 			call termopen(l:cmd, l:opts)
 			call s:SaveCurrentBufferPid(a:request)
+			execute "normal G"
 			execute 'wincmd p'
 		else
 			execute 'tabnew'
 			call termopen(l:cmd, l:opts)
 			call s:SaveCurrentBufferPid(a:request)
+			execute "normal G"
 			if l:bg
 				execute 'tabprev'
 			else
