@@ -146,10 +146,6 @@ function! s:JobExit(job_id, data, event) dict abort
 	if !self.background
 		let l:term_win = bufwinnr(self.buf_id)
 		if l:term_win != -1
-			let l:cur_win = winnr()
-			execute l:term_win . ' wincmd w'
-			call feedkeys("\<C-\>\<C-n>", 'n')
-			execute l:cur_win . ' wincmd w'
 			execute 'silent bd! ' . self.buf_id
 		endif
 	endif
