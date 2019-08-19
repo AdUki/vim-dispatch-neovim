@@ -65,12 +65,14 @@ function! dispatch#neovim#handle(request) abort
 			execute 'botright split | enew | resize 10'
 			let l:opts.buf_id = bufnr('%')
 			call termopen(l:cmd, l:opts)
+			setlocal nonumber norelativenumber
 			call s:SaveCurrentBufferPid(a:request)
 			execute "normal G"
 			execute 'wincmd p'
 		else
 			execute 'tabnew'
 			call termopen(l:cmd, l:opts)
+			setlocal nonumber norelativenumber
 			call s:SaveCurrentBufferPid(a:request)
 			execute "normal G"
 			if l:bg
